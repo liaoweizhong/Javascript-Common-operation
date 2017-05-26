@@ -1,25 +1,24 @@
 (function(windows,StringJS){
 	
 	if(windows.StringJsConfig) 
-		windows.StringJs[windows.StringJsConfig.name] = StringJS;
+		windows[windows.StringJsConfig.name] = StringJS;
 	else {
 		
-		for(var i in StringJS)
-			String.prototype[i] = StringJS[i];
+		windows.StringJS = StringJS;
 	}
 	
 })
 (window,function(){
 	
 	/*isDel 默认不删除标签 
-		text  操作字段
-		Str   起始字节
-		toStr 结束字节
+	  text  操作字段
+	  Str   起始字节
+	  toStr 结束字节
 	*/
-	var getString = function(str,toStr,isDel){
-		
-		var text = this;
-		var texts;
+	
+	var self = {};
+	
+	var getString = function(text,str,toStr,isDel){
 		
 		var s = function(){
 			
@@ -42,13 +41,11 @@
 	}
 	
 	/*  isDel 默认不删除标签 
-		text  操作字段
-		Str   起始字节
-		toStr 结束字节
+	    text  操作字段
+	    Str   起始字节
+	    toStr 结束字节
 	*/
-	var delString = function(str,toStr,isDel){
-		
-		var text = this;
+	var delString = function(text,str,toStr,isDel){
 		
 		var s = function(){
 			
@@ -68,6 +65,12 @@
 		
 		return text.replace(text.substring(s,t),"");
 		
+	}
+	
+	var getOpt = function(nameKey){
+	   
+	   return 
+	   
 	}
 	
 	
