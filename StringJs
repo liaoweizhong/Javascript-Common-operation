@@ -1,0 +1,81 @@
+(function(windows,StringJS){
+	
+	if(windows.StringJsConfig) 
+		windows.StringJs[windows.StringJsConfig.name] = StringJS;
+	else {
+		
+		for(var i in StringJS)
+			String.prototype[i] = StringJS[i];
+	}
+	
+})
+(window,function(){
+	
+	/*isDel 默认不删除标签 
+		text  操作字段
+		Str   起始字节
+		toStr 结束字节
+	*/
+	var getString = function(str,toStr,isDel){
+		
+		var text = this;
+		var texts;
+		
+		var s = function(){
+			
+			var i = text.indexOf(str) ;
+			
+			return i < 0 ? 0 : i + ( isDel ? str.length : 0 );
+			
+		}();
+		
+		var t = function(){
+			
+			var i = text.indexOf(toStr,s+1) ;
+			
+			return i < 0 ? text.length : i + ( isDel ? 0 : toStr.length );
+			
+		}();
+		
+		return text.substring(s,t);
+		
+	}
+	
+	/*  isDel 默认不删除标签 
+		text  操作字段
+		Str   起始字节
+		toStr 结束字节
+	*/
+	var delString = function(str,toStr,isDel){
+		
+		var text = this;
+		
+		var s = function(){
+			
+			var i = text.indexOf(str);
+			
+			return i < 0 ? 0 : i + ( isDel ? 0 : str.length );
+			
+		}();
+		
+		var t = function(){
+			
+			var i = text.indexOf(toStr,s+1) ;
+			
+			return i < 0 ? text.length : i + ( isDel ? toStr.length : 0 );
+			
+		}();
+		
+		return text.replace(text.substring(s,t),"");
+		
+	}
+	
+	
+	
+	return {
+		
+		getString : getString,
+		delString : delString
+		
+	}
+}())
