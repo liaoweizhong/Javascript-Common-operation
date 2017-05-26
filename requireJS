@@ -1,0 +1,251 @@
+
+
+(function(win,method){
+	/*反正只是测试玩  就不做判断了*/
+	
+	var config = {
+		Lwz : "Lwz",
+		require : "Lrequire",
+		define : "Ldefine",
+		path : "Lpath"
+	} 
+	
+	var requireConfig = win.requireConfig;
+	
+	if(requireConfig){
+		
+		for( var i in config ){
+			
+			var val = requireConfig[i];
+			if(val) config[i] = val; 
+						
+		}
+
+	}
+	
+	win[config.Lwz] = method;
+	
+	win[config.require] = method.require;
+	
+	win[config.define] = method.define;
+	
+	win[config.path] = method.path;
+
+})(
+window,
+
+function(){
+	
+	var path = "./liao";
+	
+	var defineJs = {
+		
+		defineValue : [],
+		add : function(e){ this.defineValue.push(e); },
+		/*获取第一个并删除掉*/
+		getFirstBySplice : function(){ return this.defineValue.splice(0,1)[0]; } 
+		
+	};
+	
+	var method = {
+		
+		methodValue: {},
+		methodCompleteFunction : {},
+		get : function(name){ return this.getAll()[name]; },
+		getAll : function(){ return this.methodValue; },
+		set : function(name,e){ 
+		  this.getAll()[name] = e;    
+		  var func = this.methodCompleteFunction[name];
+		  each(func,function(i,item){
+			  
+			  if(isFunction(item)) item();
+				  
+			  
+		  })
+	    }
+		
+	};
+	
+	var define = function(method){
+
+		if(isFunction(method))
+			defineJs.add(method());
+		
+	};
+	
+	var require = function(){
+		
+		var arry , method , i;
+		i = 1;
+		arry = arguments[0];
+		
+		/*如果第一个参数是数组*/
+		if(!isArray(arry)){
+			
+			method = arry;
+			
+		}else{
+			
+			method = arguments[i];
+			
+		}
+		
+		/*如果第二个参数不是方法*/
+		if(!isFunction(method)){
+			
+			return ;
+			
+		}
+		
+		new _require(arry,method);
+		
+	};
+	
+	var _require = function(arry,callback){
+		
+		var arryLen = arry.length;
+		
+		var completeLen = 0;
+		
+		/*处理数组遍历*/
+		each(arry,function(i,item){
+			
+			new load(item,function(url){
+
+				if( arryLen ===  ++completeLen ){
+					
+					var _arguments = [];
+						
+					each(arry,function(i,itme){
+						
+						var param = {
+							results:method.get(itme),
+							url : url
+						}
+						
+						_arguments.push(param);
+						
+					})
+					
+					callback.apply(this,_arguments);
+					
+				}
+				
+			});
+			
+		})
+		
+	}
+	
+	var urlLoadComplete = function(url){
+		
+		method.set(url,defineJs.getFirstBySplice());
+		
+	}
+	
+	var load = function(url,callback){
+		
+		var m =  method.get(url);
+		/*如果等于undefined 说明没有请求过*/
+		if( m === undefined ){
+			
+			method[url] = null;
+			
+		} 
+		else 
+		/*如果等于null 说明请求过但是还没加载完成*/
+		if( m === null ){
+			
+			var Func = method.methodCompleteFunction[url];
+			if(!Func) Func = method.methodCompleteFunction[url] = [];
+			Func.push(callback);
+			return ;
+			
+		}else
+		/*如果值确实存在  则说明已经加载完成了*/
+		if( m ){
+		
+			callback(url);
+			return ;
+		}
+		var loadModule = [];
+		
+		var callback = callback || new Function;
+			
+		var script = document.createElement("script");
+		
+		script.url = url;
+		
+		script.type = "text/javascript"; 
+		if (script.readyState){ //IE 
+			script.onreadystatechange = function(event){ 
+	
+				if (script.readyState == "loaded" || 
+					script.readyState == "complete"){ 
+						script.onreadystatechange = null; 
+						urlLoadComplete.apply(this,[url]);
+						callback(url);
+					} 
+			}; 
+		} else { //Others: Firefox, Safari, Chrome, and Opera 
+			script.onload = function(event){ 
+	
+				urlLoadComplete.apply(this,[url]); 
+				callback(url);
+				
+			}; 
+		} 
+		if(url.replace(/ /g,"").indexOf("http:") != 0){
+			
+			script.src = (path[path,length-1] === "/" || path === "" || !path ? path : path + "/") + url + ".js"; 
+			
+		}else{
+			
+			script.src = url;
+			
+		}
+		document.body.appendChild(script); 
+
+	} 
+	
+	var each = function(arry,method){
+		
+		if(isFunction(method))
+			for(var i in arry){
+				
+				if( !i || i === "length" ) break;
+				
+				method(i,arry[i]);
+				
+			}
+		
+	}
+	
+    var isArray = function(obj){
+
+      return ( obj && typeof obj === "object" && obj.constructor===Array && obj instanceof Array );
+
+    };
+
+    var isJson = function(obj){
+
+      return ( obj && typeof obj === "object" && obj.constructor===Object && obj instanceof Object && obj.toString() === "[object Object]" );
+
+    };
+	
+	var isFunction = function(obj){	
+	
+		return ( obj && typeof obj === "function" && obj.constructor===Function && obj instanceof Function && obj.toString().indexOf("function")>-1 );
+		
+	};
+	
+	return {
+		
+		path : path,
+		require: require,
+		define : define,
+		
+	}
+}()
+)
+
