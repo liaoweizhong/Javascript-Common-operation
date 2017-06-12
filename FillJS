@@ -1,96 +1,127 @@
-(function(window,fillElement){
+(function(windows,fillElement){
 	
 	if(windows.fillElementConfig) 
 		windows[windows.fillElementConfig.name] = fillElement;
 	else {
 		
-		if(!window.fillText)
-			window.fillText = fillElement;
+		if(!windows.fillText)
+			windows.fillText = new fillElement().fillText;
 		
 	}
 
 })(
 window,
-function(idorElement,data){
 
-	var
-		mark = "$mark-";
-		isbreak = false;
-		Count = 0; /*已填充数量*/
+function(){
+	
+	var _data = {};
+	
+	this.fillText = function(idorElement,data,$$){
+	
+		var $$ = $$ || "$";
 		
-	
-	/*提供id号和对应的object数据*/	
-	var dom ;
-	if(typeof idorElement === "string"){
-		dom = document.getElementById(idorElement);
-	}else{
-		dom = idorElement;
-	}
-	
-	
-	var parentDom = dom.parentNode;
-	
-	parentDom.innerHTML = "";
-	
-	var index = function(){
+		var
+			mark = "$mark-";
+			isbreak = false;
+			Count = 0; 
 			
-		var elemen = parentDom.getElementsByTagName("*");
-		
-		var index = 0;
-		
-		for(var i in elemen){
+		var dom ;
+		if(typeof idorElement === "string"){
+			dom = document.getElementById(idorElement);
+		}else{
+			dom = idorElement;
+		}
+		var parentDom;
+		var parentDomText;
+	
+		parentDom = dom;
+		parentDomText = parentDom.innerHTML;
+					 
+		if(_data[dom.id])
+			parentDomText = _data[dom.id];
+					
+		if(parentDomText==""){
 			
-			var item = elemen[i];
+			parentDomText = _data[dom.id];
 			
-			if(!item.tagName) return ;
+		}else{
 			
-			item.index = ++index;
+			if(!_data[dom.id])
+				_data[dom.id] = parentDomText;
 			
 		}
-			
-	}();
-	
-	for(var c in data){
 		
-		if(c == "length") return ;
+		parentDomText = parentDomText.replace(/&lt;/g,"<").replace(/&gt;/g,">");
 		
-		var cItem = data[c];
+		var len = 0;
 		
-		var cloneDom = dom.cloneNode(true);
-			
-		var e = cloneDom.getElementsByTagName('*');
+		var Str = "";
 		
-		for(var i = 0,len = e.length; i < len; i++){
-			
-			var item = e[i];
-			
-			var itemClass = item.className.replace(/\s+/g," ").split(" ");
-			
-			for(var j = 0,jlen = itemClass.length; j < jlen ; j++){
-				
-				if(itemClass[j].indexOf(mark) == 0 ){
+		for(var c in data){
 
-					var dat = cItem[itemClass[j].replace(mark,"")];
+			len ++;
+			
+			var text = parentDomText;
+			
+			var cItem = data[c];
+			
+			cItem["getIndex"] = len;
+			
+			var key;
+			
+			for(;;){
+				
+				key = getString(text,"{"+$$,$$+"}",true);
+				
+				if( key == ""){ break; } 
+				
+				eval("var b = cItem."+key+";") 
+				
+				
 					
-					if(!dat) continue;
+				text = text.replace("{"+$$+key+$$+"}",b);
 					
-					var Tag = item.tagName;
-					
-					if(Tag == "INPUT") { item.value = dat;   }
-					else{ item.innerText = dat;   }
-					Count++;
-					break;
-				}
+				
 				
 			}
 			
+			Str += text;
+
 		}
 		
-		parentDom.appendChild(cloneDom);
+		parentDom.innerHTML = Str;
+
+		return this;
 		
-		dom.remove();
-
 	}
-
+	
 }
+
+
 )
+
+var getString = function(text,str,toStr,isDel){
+		
+	var s = function(){
+		
+		var i = text.indexOf(str) ;
+		
+		return i < 0 ? 0 : i + ( isDel ? str.length : 0 );
+		
+	}();
+	
+	var t = function(){
+		
+		var i = text.indexOf(toStr,s+1) ;
+		
+		return i < 0 ? text.length : i + ( isDel ? 0 : toStr.length );
+		
+	}();
+	
+	var ret = text.substring(s,t);
+	
+	if( text == ret) ret = "";
+	
+	return ret;
+	
+}
